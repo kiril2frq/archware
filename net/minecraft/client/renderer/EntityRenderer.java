@@ -2980,7 +2980,7 @@ public class EntityRenderer implements IResourceManagerReloadListener
 
     public static void drawNameplate(FontRenderer fontRendererIn, String str, float x, float y, float z, int verticalShift, float viewerYaw, float viewerPitch, boolean isThirdPersonFrontal, boolean isSneaking, Entity entity)
     {
-        if(ArchWare.moduleManager.getModuleByName("NameTags").isToggled() || ArchWare.moduleManager.getModuleByName("ESP").isToggled()) return;
+        if(ArchWare.moduleManager.getModuleByName("NameTags").isToggled() || ArchWare.moduleManager.getModuleByName("2DESP").isToggled()) return;
         if(entity.getEntityId() == -1337) return;
         if(!ArchWare.moduleManager.getModuleByClass(NameTags.class).isToggled()){
             GlStateManager.pushMatrix();
