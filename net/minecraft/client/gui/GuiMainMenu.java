@@ -348,7 +348,7 @@ public class GuiMainMenu extends GuiScreen
             RenderUtil.drawRect(particle.getPosX(), particle.getPosY(), 1, 1, new Color(255, 255, 255, 255).hashCode());
             if(particle.getPosY() >= sr.getScaledHeight() + 1) {
                 particles.remove(particle);
-                particles.add(new Particle((float)(Math.random()*sr.getScaledWidth()), 0));
+                particles.add(new Particle((float)(Math.random()*sr.getScaledWidth()), (float)(Math.random()*sr.getScaledHeight())));
             }
         }
         ArchWare.drawChangelog();
