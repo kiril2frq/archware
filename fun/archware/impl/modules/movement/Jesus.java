@@ -27,8 +27,8 @@ public class Jesus extends Module {
         switch(mode.getValueString()){
             case "Matrix":
                 if(mc.player.isInWater()){
-                    mc.player.motionY = 0;
-                    event.setOnGround(true);
+                    mc.player.motionY = motionY.getValueNumeric();
+                    MoveUtils.setSpeed(motion.getValueNumeric());
                 }
                 break;
             case "Float":
