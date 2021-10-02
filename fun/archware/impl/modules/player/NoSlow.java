@@ -22,22 +22,7 @@ public class NoSlow extends Module {
     }
 
     @EventTarget
-    public void onUpdate(final EventPreUpdate event){
-        if(mc.player.isHandActive()){
-            if(mc.player.ticksExisted % 3 == 0 && mc.player.onGround){
-                mc.player.moveEntity(MoverType.PLAYER, 0f, 0.05f, 0);
-                //event.setOnGround(true);
-            }if(!mc.player.onGround){
-                mc.player.speedInAir = 0.1f;
-            }else{
-                mc.player.speedInAir = 0.02f;
-            }
-        }
-    }
-
-    @EventTarget
     public void onSlowDown(final EventSlowdown eventSlowdown){
-        //eventSlowdown.cancel();
-
+        eventSlowdown.cancel();
     }
 }
