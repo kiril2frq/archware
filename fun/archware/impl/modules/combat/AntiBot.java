@@ -15,13 +15,16 @@ import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.server.SPacketSpawnPlayer;
+import net.minecraft.util.EnumHand;
 
 import java.util.*;
 
 public class AntiBot extends Module {
     StringValue mode = new StringValue("Mode", "AntiBotMode", this, "Invisible", new String[]{"Invisible", "Matrix", "Mineland", "Dev", "Reflex"});
     private UUID detectedEntity;
+    public static final Set<Entity> bots = new HashSet<>();
     public AntiBot() {
         super("AntiBot", Category.COMBAT);
     }
@@ -37,7 +40,7 @@ public class AntiBot extends Module {
                 break;
             case "Matrix":
                 for(final Entity e : mc.world.loadedEntityList){
-                    if(e.ticksExisted < 5 && e instanceof EntityOtherPlayerMP){
+                    if(e != mc.player && e.ticksExisted < 5 && e instanceof EntityOtherPlayerMP){
                        if(((EntityOtherPlayerMP) e).hurtTime > 0 && mc.player.getDistanceToEntity(e) <= 25 && mc.getConnection().getPlayerInfo(e.getUniqueID()).getResponseTime() != 0){
                            mc.world.removeEntity(e);
                        }
@@ -54,12 +57,7 @@ public class AntiBot extends Module {
                     }
                 break;
             case "Reflex":
-                for(final Entity e : mc.world.loadedEntityList){
-                    if(e.ticksExisted < 3 && ((EntityOtherPlayerMP)e).getHealth() > ((EntityOtherPlayerMP)e).getMaxHealth() || (e.ticksExisted < 3 && e.isInvisible())){
-                        NotificationManager.addNotification(new Notification("AntiBot", "Removed fake entity " + e.getName(), NotificationType.OK));
-                        mc.world.removeEntity(e);
-                    }
-                }
+
                 break;
         }
     }

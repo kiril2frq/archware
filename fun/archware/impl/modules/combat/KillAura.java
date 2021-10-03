@@ -15,6 +15,7 @@ import fun.archware.impl.utils.RotationUtils;
 import fun.archware.impl.utils.TimeUtil;
 import javafx.animation.Interpolator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.MoverType;
@@ -24,10 +25,7 @@ import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemAxe;
-import net.minecraft.network.play.client.CPacketAnimation;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketPlayerAbilities;
+import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumHand;
 
 import java.util.ArrayList;
@@ -48,6 +46,7 @@ public class KillAura extends Module
         private final StringValue criticalsType = new StringValue("Criticals type", "AuraCriticalsType", this, "Legit", new String[]{"Legit", "Packet"});
         public static Entity target;
         private final StringValue rotationsType = new StringValue("Rotations type", "AuraRotationsType", this, "Both", new String[]{"Both", "Silent", "None"});
+        private final BooleanValue staticTarget = new BooleanValue("Static target", "AuraStaticTarget", this, false);
         public static float rightYawRotation = 0;
         public static boolean xd = true;
         public KillAura() {
@@ -112,7 +111,7 @@ public class KillAura extends Module
                         }
                         if (e2.getDistanceToEntity(mc.player) > range.getValueNumeric() || !(e2 instanceof EntityLivingBase) || e2.isDead || e2 == mc.player) {
                                 continue;
-                        }
+                        }if(AntiBot.bots.contains(e2)) continue;
                         entities.add(e2);
                 }
                 final String valueString = sort.getValueString();
@@ -126,9 +125,8 @@ public class KillAura extends Module
                                 break;
                         }
                 }
-                if (!entities.isEmpty() && entities.get(0) != null && !entities.get(0).isDead) {
-                        KillAura.target = entities.get(0);
-
+                if(!staticTarget.getValueBoolean() && (target == null || target.isDead)) KillAura.target = entities.get(0);
+                if (target != null) {
                         final float[] rotations = RotationUtils.getRotation(target);
                         rightYawRotation = rotations[0];
                         if(!rotationsType.getValueString().equals("None")){
@@ -139,6 +137,16 @@ public class KillAura extends Module
                                         mc.player.renderYawOffset = rotations[0];
                                         mc.player.rotationPitchHead = rotations[1];
                                 }
+                        }
+                        if(ArchWare.moduleManager.getModuleByName("ShieldBreaker").isToggled() && target instanceof EntityPlayer && (((EntityPlayer)target).getActiveHand() == EnumHand.OFF_HAND && Item.getIdFromItem(((EntityPlayer)target).getHeldItem(EnumHand.OFF_HAND).getItem()) == 442)){
+                                for(int i = 0; i < 9; ++i){
+                                        if(mc.player.inventory.getStackInSlot(i).getItem() instanceof ItemAxe){
+                                                mc.getConnection().sendPacket(new CPacketHeldItemChange(i));
+                                                break;
+                                        }
+                                }
+                                attack();
+                                mc.getConnection().sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem));
                         }
 
                         if(criticalsType.getValueString().equals("Packet")){
@@ -162,35 +170,25 @@ public class KillAura extends Module
         }
 
         private void attack() {
-                if (nosprint.getValueBoolean()) {
-                        xd = false;
-                        mc.player.setSprinting(false);
-                }
-                if(ArchWare.moduleManager.getModuleByName("ShieldBreaker").isToggled() && target instanceof EntityPlayer && (((EntityPlayer)target).getActiveHand() == EnumHand.OFF_HAND && Item.getIdFromItem(((EntityPlayer)target).getHeldItem(EnumHand.OFF_HAND).getItem()) == 442)){
-                        for(int i = 0; i < 9; ++i){
-                                if(mc.player.inventory.getStackInSlot(i).getItem() instanceof ItemAxe){
-                                        mc.getConnection().sendPacket(new CPacketHeldItemChange(i));
-                                        break;
-                                }
+                if(timer.hasReached((long)(Math.random()*220))){
+                        if (nosprint.getValueBoolean()) {
+                                xd = false;
+                                mc.player.setSprinting(false);
                         }
+                        mc.playerController.attackEntity(mc.player, KillAura.target);
+                        if (swing.getValueBoolean()) {
+                                mc.player.swingArm(EnumHand.MAIN_HAND);
+                        }
+                        else {
+                                mc.getConnection().sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+                        }
+                        if(nosprint.getValueBoolean()){
+                                mc.gameSettings.keyBindSprint.pressed = true;
+                                mc.player.setSprinting(true);
+                        }
+                        xd = true;
+                        timer.reset();
                 }
-
-                mc.playerController.attackEntity(mc.player, KillAura.target);
-                if (swing.getValueBoolean()) {
-                        mc.player.swingArm(EnumHand.MAIN_HAND);
-                }
-                else {
-                        mc.getConnection().sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-                }
-                if(nosprint.getValueBoolean()){
-                        mc.gameSettings.keyBindSprint.pressed = true;
-                        mc.player.setSprinting(true);
-                }
-
-                if(ArchWare.moduleManager.getModuleByName("ShieldBreaker").isToggled() && target instanceof EntityPlayer && (((EntityPlayer)target).getActiveHand() == EnumHand.OFF_HAND && Item.getIdFromItem(((EntityPlayer)target).getHeldItem(EnumHand.OFF_HAND).getItem()) == 442)){
-                        mc.getConnection().sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem));
-                }
-                xd = true;
         }
 
 
